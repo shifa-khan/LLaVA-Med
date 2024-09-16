@@ -35,8 +35,8 @@ from openai import OpenAI
 
 class PersonalInfoMasker:
     def _init_(self):
-        # self.client = OpenAI(api_key="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")
-        # self.api_key = "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"
+        # self.client = OpenAI(api_key="")
+        # self.api_key = ""
         self._input_text = ""
         self._masked_text = ""
 
