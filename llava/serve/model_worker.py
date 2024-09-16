@@ -24,6 +24,271 @@ from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_S
 from transformers import TextIteratorStreamer
 from threading import Thread
 
+import cv2
+import numpy as np
+import base64
+'''
+import re
+import os
+import requests
+from openai import OpenAI
+
+class PersonalInfoMasker:
+    def _init_(self):
+        # self.client = OpenAI(api_key="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")
+        # self.api_key = "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"
+        self._input_text = ""
+        self._masked_text = ""
+
+    # Getter for input_text
+    def get_input_text(self):
+        return self._input_text
+    
+    # Setter for input_text
+    def set_input_text(self, input_text):
+        self._input_text = input_text
+
+    # Getter for masked_text
+    def get_masked_text(self):
+        return self._masked_text
+
+    # Function to mask personal information using regex
+    def mask_personal_info(self, text):
+        # Define patterns for PII (Names, Age, Emails, Phone Numbers)
+        name_pattern = r"\b[A-Z][a-z]+\s[A-Z][a-z]+\b"  # Simple pattern for names (First Last)
+        age_pattern = r"\b(?:[1-9]|[1-9][0-9])\s*(?:years old|year-old|y/o)\b"  # Pattern for age (XX years old)
+        email_pattern = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"  # Email pattern
+        phone_pattern = r"\b(?:\+?(\d{1,3})?[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"  # Phone number pattern
+
+        # Masking personal information with special characters
+        masked_text = re.sub(name_pattern, '', text)  # Mask names
+        masked_text = re.sub(age_pattern, '## years old', masked_text)  # Mask ages
+        masked_text = re.sub(email_pattern, '@.*', masked_text)  # Mask email addresses
+        masked_text = re.sub(phone_pattern, '--', masked_text)  # Mask phone numbers
+
+        return masked_text
+
+    # Function to process text with GPT and mask PII
+    def process_text(self):
+        if not self._input_text:
+            raise ValueError("Input text is empty. Set input text before processing.")
+
+        # # Use GPT-3.5 to assist with PII detection
+        # response = self.client.chat.completions.create(
+        #     model="gpt-3.5-turbo",
+            # messages=[
+            #     {"role": "system", "content": "You are both data privacy and medical assistant. Your job is to carefully examine text to obfuscate only the patient's personal information in medical reports leaving behind the information like the name of medicals tests, follow-up treatments, etc."},
+            #     {"role": "user", "content": f"I have a medical document containing sensitive information related to a patient. Your task is to review the entire text and carefully identify any personally identifiable information (PII) such as the patient's name, address, phone number, date of birth, Social Security number, or any other details that could be used to identify the patient. Replace all instances of PII with '[MASKED]' to protect the patient's privacy, but leave essential medical information such as test names, procedures, medications, and medical conditions untouched. Here is the text:\n\n{self._input_text}"},
+            # ]
+        #     )
+        api_key = os.getenv("OPENAI_API_KEY")   
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+        data = {
+            "model": "gpt-4",
+            "messages": [
+                {
+                "role": "system", "content": "You are a private information obfuscator, you simply put *s in place of sensitive info only like names, phone numbers, email address.",
+                "role": "user", "content": f"Anonymize this text:\n\n{self._input_text}",
+                }
+                ],
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        response_json = response.json()
+        
+        # Get the GPT-3.5 modified content
+        # gpt_masked_content = response_json
+        # Get the GPT-4 modified content
+        gpt_masked_content = response_json.get('choices', [{}])[0].get('message', {}).get('content', '')
+
+        # Further mask personal information using regular expressions
+        # self._masked_text = self.mask_personal_info(gpt_masked_content)
+        choices = response_json['choices'][0]
+        return str(choices['message']['content'])
+
+    def process_text(self):
+        if not self._input_text:
+            raise ValueError("Input text is empty. Set input text before processing.")
+
+    # Mask personal information using regex
+        preprocessed_text = self.mask_personal_info(self._input_text)
+
+    # Send the preprocessed text to GPT for further obfuscation (if needed) and content generation
+        api_key = os.getenv("OPENAI_API_KEY")   
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+        }
+        data = {
+             "model": "gpt-4",
+             "messages": [
+                 {
+                 "role": "system", 
+                 "content": "You are a private information obfuscator, you simply put *s in place of sensitive info only like names, phone numbers, email address."
+                 },
+                 {
+                 "role": "user", 
+                 "content": f"Anonymize this text:\n\n{preprocessed_text}"
+                 }
+                 ],
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        response_json = response.json()
+
+    # Get the GPT-4 modified content
+        gpt_masked_content = response_json.get('choices', [{}])[0].get('message', {}).get('content', '')
+
+    # Further mask any remaining personal information using regex
+        self._masked_text = self.mask_personal_info(gpt_masked_content)
+        return self._masked_text
+'''
+
+import spacy
+import requests
+import os
+
+class PersonalInfoMasker:
+    def __init__(self):
+        # Load the SpaCy model for NER
+        self.nlp = spacy.load("en_core_web_sm")
+        self._input_text = ""
+
+    # Getter for input_text
+    def get_input_text(self):
+        return self._input_text
+    
+    # Setter for input_text
+    def set_input_text(self, input_text):
+        self._input_text = input_text
+
+    # Function to mask personal information using SpaCy NER
+    def mask_personal_info(self, text):
+        doc = self.nlp(text)
+        masked_text = text
+        # Replace entities with [MASKED]
+        for ent in doc.ents:
+            if ent.label_ in ["PERSON", "DATE", "GPE", "ORG", "EMAIL", "PHONE"]:
+                masked_text = masked_text.replace(ent.text, "[MASKED]")
+        return masked_text
+
+    # Function to process text with GPT and mask PII
+    def process_text(self):
+        if not self._input_text:
+            raise ValueError("Input text is empty. Set input text before processing.")
+
+        # Apply NER-based masking first
+        preprocessed_text = self.mask_personal_info(self._input_text)
+
+        # Prepare API request to OpenAI
+        api_key = os.getenv("OPENAI_API_KEY")
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+        data = {
+            "model": "gpt-4",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are an expert in anonymizing personal data. Replace any remaining personal information such as names, phone numbers, email addresses, and other sensitive details with '[MASKED]' in the following text."
+                },
+                {
+                    "role": "user",
+                    "content": f"Here is the text with potentially sensitive information:\n\n{preprocessed_text}"
+                }
+            ],
+        }
+
+        # Send request to OpenAI API
+        response = requests.post(url, headers=headers, json=data)
+        response_json = response.json()
+        gpt_masked_content = response_json.get('choices', [{}])[0].get('message', {}).get('content', '')
+
+        return gpt_masked_content
+
+class ImageObfuscator:
+    def __init__(self, pixel_size=2):
+        self._image = None
+        self._obfuscated_image = None
+        self._pixel_size = pixel_size
+
+    def set_image(self, image):
+        if isinstance(image, str):
+            # Assume the string is a base64 encoded image
+            self._image = self._decode_base64_image(image)
+        elif isinstance(image, np.ndarray):
+            self._image = image
+        else:
+            raise ValueError("Input must be a string (base64 encoded image) or a numpy array")
+
+    def _decode_base64_image(self, base64_string):
+        # Remove the data URL prefix if present
+        if ',' in base64_string:
+            base64_string = base64_string.split(',')[1]
+        
+        # Decode the base64 string
+        image_data = base64.b64decode(base64_string)
+        
+        # Convert to numpy array
+        nparr = np.frombuffer(image_data, np.uint8)
+        
+        # Decode the image
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
+        if image is None:
+            raise ValueError("Failed to decode the image")
+        
+        return image
+
+    def get_obfuscated_image(self):
+        return self._obfuscated_image
+
+    def obfuscate(self):
+        if self._image is None:
+            raise ValueError("No image set")
+
+        height, width = self._image.shape[:2]
+
+        # Ensure pixel size doesn't result in zero or negative resize dimensions
+        if self._pixel_size <= 0:
+            raise ValueError("Pixel size must be greater than 0")
+
+        # Ensure width and height divided by pixel size are at least 1
+        new_width = max(1, width // self._pixel_size)
+        new_height = max(1, height // self._pixel_size)
+
+        # Resize the image down
+        small = cv2.resize(self._image, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
+
+        # Resize it back to the original dimensions using nearest neighbor interpolation
+        self._obfuscated_image = cv2.resize(small, (width, height), interpolation=cv2.INTER_NEAREST)
+
+    def get_obfuscated_image_base64(self):
+        if self._obfuscated_image is None:
+            raise ValueError("No obfuscated image available")
+        
+        _, buffer = cv2.imencode('.png', self._obfuscated_image)
+        return base64.b64encode(buffer).decode('utf-8')
+
+def obfuscate_for_llava(image, pixel_size=2):
+    """
+    Obfuscate an input image for use with LLaVA-Med.
+    
+    :param image: string (base64 encoded image) or numpy array representing the image
+    :param pixel_size: int, size of pixelation effect
+    :return: numpy array of the obfuscated image
+    """
+    obfuscator = ImageObfuscator(pixel_size)
+    obfuscator.set_image(image)
+    obfuscator.obfuscate()
+    return obfuscator.get_obfuscated_image()
 
 GB = 1 << 30
 
@@ -121,11 +386,66 @@ class ModelWorker:
 
     @torch.inference_mode()
     def generate_stream(self, params):
+        import os
+        import cv2
         tokenizer, model, image_processor = self.tokenizer, self.model, self.image_processor
 
         prompt = params["prompt"]
         ori_prompt = prompt
+
+        # Print original prompt
+        print("Original Prompt: ", ori_prompt)
+        
+        text_obfs = PersonalInfoMasker()
+        text_obfs.set_input_text(ori_prompt)
+        ori_prompt = text_obfs.process_text()
+        
+        # Print obfuscated text
+        print("Obfuscated Prompt: ", ori_prompt)
+
+        # Handle images if provided
         images = params.get("images", None)
+        if images is not None:
+            # Create directory if it doesn't exist
+            image_dir = "images"
+            if not os.path.exists(image_dir):
+                os.makedirs(image_dir)
+            
+            for idx, image in enumerate(images):
+                # Save the original image
+                original_image_path = os.path.join(image_dir, f"original_image_{idx}.png")
+
+                # Check if the image is a NumPy array
+                if isinstance(image, np.ndarray):
+                    # Ensure the original image is in uint8 format
+                    if image.dtype != np.uint8:
+                        image = (image * 255).astype(np.uint8)
+                    
+                    # Save the original image
+                    cv2.imwrite(original_image_path, image)
+                    print(f"Original image saved at: {original_image_path}")
+                else:
+                    print(f"Image {idx} is not a valid NumPy array. Skipping...")
+
+                # Obfuscate the image
+                obfuscated_image = obfuscate_for_llava(image)
+
+                # Check if obfuscated_image is a NumPy array and save
+                if isinstance(obfuscated_image, np.ndarray):
+                    # Ensure the obfuscated image is in uint8 format
+                    if obfuscated_image.dtype != np.uint8:
+                        obfuscated_image = (obfuscated_image * 255).astype(np.uint8)
+
+                    # Save the obfuscated image
+                    obfuscated_image_path = os.path.join(image_dir, f"obfuscated_image_{idx}.png")
+                    cv2.imwrite(obfuscated_image_path, obfuscated_image)
+                    print(f"Obfuscated image saved at: {obfuscated_image_path}")
+                else:
+                    print(f"Obfuscated image {idx} is not a valid NumPy array. Skipping...")
+
+            # Print a message after obfuscation
+            print("Images have been obfuscated and saved.")
+        
         num_image_tokens = 0
         if images is not None and len(images) > 0 and self.is_multimodal:
             if len(images) > 0:
