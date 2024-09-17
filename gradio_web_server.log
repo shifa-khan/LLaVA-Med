@@ -1,0 +1,16 @@
+2024-09-16 19:39:00 | INFO | gradio_web_server | args: Namespace(host='0.0.0.0', port=None, controller_url='http://localhost:10000', concurrency_count=10, model_list_mode='once', share=False, moderate=False, embed=False)
+2024-09-16 19:39:00 | INFO | gradio_web_server | Models: ['llava-med-v1.5-mistral-7b']
+2024-09-16 19:39:00 | INFO | gradio_web_server | Namespace(host='0.0.0.0', port=None, controller_url='http://localhost:10000', concurrency_count=10, model_list_mode='once', share=False, moderate=False, embed=False)
+2024-09-16 19:39:01 | INFO | stdout | Running on local URL:  http://0.0.0.0:7860
+2024-09-16 19:39:01 | INFO | stdout | 
+2024-09-16 19:39:01 | INFO | stdout | To create a public link, set `share=True` in `launch()`.
+2024-09-16 19:39:09 | INFO | gradio_web_server | load_demo. ip: 172.27.16.161. params: {}
+2024-09-16 19:39:14 | INFO | gradio_web_server | add_text. ip: 172.27.16.161. len: 25
+2024-09-16 19:39:14 | INFO | gradio_web_server | http_bot. ip: 172.27.16.161
+2024-09-16 19:39:14 | INFO | gradio_web_server | model_name: llava-med-v1.5-mistral-7b, worker_addr: http://localhost:40000
+2024-09-16 19:39:14 | INFO | gradio_web_server | ==== request ====
+{'model': 'llava-med-v1.5-mistral-7b', 'prompt': '[INST] <image>\nWhat is this image about? [/INST]', 'temperature': 0.2, 'top_p': 0.7, 'max_new_tokens': 512, 'stop': '</s>', 'images': "List of 1 images: ['c98a0941c1b4e20feb7ac190b92615ba']"}
+2024-09-16 19:39:19 | INFO | gradio_web_server | rmation:
+
+[INST] <image>
+What is this image about? [/INST]This image is a histopathological examination of a skin lesion. Histopathology is the study of diseased tissue under a microscope to examine the manifestations of disease. In this case, the image shows the microscopic appearance of the skin lesion, which can help in understanding the nature of the lesion and potentially guide further diagnostic tests or treatment options.
